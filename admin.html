@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Milana Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="catalog.css?v=20260526-admin-cleanup"/>
+  <link rel="stylesheet" href="admin.css?v=20260526-admin-cleanup"/>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="Milana Premium home">
+      <img class="brand-logo" src="assets/milana-premium-logo.png" alt="Milana Premium"/>
+    </a>
+    <div class="admin-header-actions">
+      <a class="admin-link" href="catalog.html?id=1">Public catalog</a>
+      <button class="admin-link" id="logoutButton" type="button" hidden>Logout</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="login-panel" id="loginPanel">
+      <form class="login-card" id="loginForm">
+        <p class="eyebrow">Private Access</p>
+        <h1>Admin Login</h1>
+        <label>
+          <span>Email</span>
+          <input id="adminEmail" type="email" autocomplete="email" required>
+        </label>
+        <label>
+          <span>Password</span>
+          <input id="adminPassword" type="password" autocomplete="current-password" required>
+        </label>
+        <button class="primary-action" type="submit">Login</button>
+        <p class="form-note" id="loginMessage"></p>
+      </form>
+    </section>
+
+    <section class="admin-workspace" id="adminWorkspace" hidden>
+      <section class="catalog-head">
+        <a class="back-link" href="index.html">Back to catalogs</a>
+        <div>
+          <p class="eyebrow" id="catalogNumber">Catalog</p>
+          <h1 id="catalogTitle">Milana Premium</h1>
+        </div>
+        <div class="toolbar">
+          <nav class="catalog-switch" aria-label="Catalogs">
+            <a href="admin.html?id=1" data-catalog-link="1">01</a>
+            <a href="admin.html?id=2" data-catalog-link="2">02</a>
+            <a href="admin.html?id=3" data-catalog-link="3">03</a>
+            <a href="admin.html?id=4" data-catalog-link="4">04</a>
+          </nav>
+          <label class="search-wrap" for="productSearch">
+            <span>Search</span>
+            <input id="productSearch" type="search" autocomplete="off" placeholder="Model or code"/>
+          </label>
+          <p class="count" id="productCount">Loading</p>
+        </div>
+      </section>
+
+      <section class="status" id="status" hidden></section>
+      <section class="product-grid admin-grid" id="productGrid" aria-live="polite"></section>
+    </section>
+  </main>
+
+  <div class="edit-modal" id="editModal" hidden>
+    <form class="edit-dialog" id="editForm">
+      <div class="edit-head">
+        <div>
+          <p class="eyebrow">Edit Product</p>
+          <h2 id="editTitle">Product</h2>
+        </div>
+        <button class="icon-action" type="button" id="closeEdit" aria-label="Close">X</button>
+      </div>
+      <label>
+        <span>Model number</span>
+        <input id="editModel" type="text">
+      </label>
+      <label>
+        <span>Product code</span>
+        <input id="editCode" type="text">
+      </label>
+      <label>
+        <span>Price</span>
+        <input id="editPrice" type="number" min="0" step="0.01" required>
+      </label>
+      <label>
+        <span>Picture URL</span>
+        <input id="editImageUrl" type="url">
+      </label>
+      <label>
+        <span>Upload new picture</span>
+        <input id="editImageFile" type="file" accept="image/*">
+      </label>
+      <div class="edit-actions">
+        <button class="secondary-action" type="button" id="cancelEdit">Cancel</button>
+        <button class="primary-action" type="submit" id="saveEdit">Save</button>
+      </div>
+      <p class="form-note" id="editMessage"></p>
+    </form>
+  </div>
+
+  <script src="site-config.js"></script>
+  <script src="admin-page.js?v=20260529-edit-all-catalogs"></script>
+</body>
+</html>

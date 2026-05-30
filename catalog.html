@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Milana Premium Catalog</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="catalog.css?v=20260526-admin-trigger"/>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="Milana Premium home">
+      <img class="brand-logo" src="assets/milana-premium-logo.png" alt="Milana Premium"/>
+    </a>
+    <div class="header-actions">
+      <nav class="catalog-switch" aria-label="Catalogs">
+        <a href="catalog.html?id=1" data-catalog-link="1">01</a>
+        <a href="catalog.html?id=2" data-catalog-link="2">02</a>
+        <a href="catalog.html?id=3" data-catalog-link="3">03</a>
+        <a href="catalog.html?id=4" data-catalog-link="4">04</a>
+      </nav>
+      <a class="admin-trigger" id="adminShortcut" href="admin.html?id=1" aria-label="Admin login">MP</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="catalog-head">
+      <a class="back-link" href="index.html">Back to catalogs</a>
+      <div>
+        <p class="eyebrow" id="catalogNumber">Catalog</p>
+        <h1 id="catalogTitle">Milana Premium</h1>
+      </div>
+      <div class="toolbar">
+        <label class="search-wrap" for="productSearch">
+          <span>Search</span>
+          <input id="productSearch" type="search" autocomplete="off" placeholder="Model or code"/>
+        </label>
+        <p class="count" id="productCount">Loading</p>
+      </div>
+    </section>
+
+    <section class="status" id="status" hidden></section>
+    <section class="product-grid" id="productGrid" aria-live="polite"></section>
+  </main>
+
+  <div class="product-modal" id="productModal" role="dialog" aria-modal="true" hidden>
+    <button class="modal-close" id="closeProductModal" type="button" aria-label="Close">X</button>
+    <article class="product-modal-card" id="productModalCard"></article>
+  </div>
+
+  <script src="site-config.js"></script>
+  <script src="catalog-page.js?v=20260526-products-fallback"></script>
+</body>
+</html>

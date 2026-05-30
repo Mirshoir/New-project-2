@@ -1,0 +1,168 @@
+.admin-workspace[hidden],
+.login-panel[hidden],
+[hidden] {
+  display: none !important;
+}
+
+.admin-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-link,
+.primary-action,
+.secondary-action,
+.icon-action {
+  min-height: 38px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  font: 700 11px/1 "Montserrat", Arial, sans-serif;
+  letter-spacing: 1px;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.admin-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 14px;
+}
+
+.primary-action {
+  padding: 0 18px;
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
+.secondary-action,
+.icon-action {
+  padding: 0 14px;
+}
+
+.login-panel {
+  min-height: calc(100vh - 170px);
+  display: grid;
+  place-items: center;
+}
+
+.login-card,
+.edit-dialog {
+  width: min(460px, 100%);
+  display: grid;
+  gap: 16px;
+  background: #fff;
+  border: 1px solid var(--line);
+  padding: clamp(24px, 4vw, 36px);
+  box-shadow: var(--shadow);
+}
+
+.login-card h1,
+.edit-dialog h2 {
+  margin: 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 42px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.login-card label,
+.edit-dialog label {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
+.login-card input,
+.edit-dialog input {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  padding: 0 12px;
+  color: var(--ink);
+  font: 500 14px/1 "Montserrat", Arial, sans-serif;
+  outline: none;
+}
+
+.login-card input:focus,
+.edit-dialog input:focus {
+  border-color: var(--gold);
+}
+
+.form-note {
+  min-height: 18px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.admin-grid .product-card {
+  position: relative;
+}
+
+.edit-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  background: rgba(23, 20, 17, 0.88);
+  color: #fff;
+  cursor: pointer;
+  font: 700 10px/1 "Montserrat", Arial, sans-serif;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.edit-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(18, 15, 12, 0.62);
+}
+
+.edit-modal[hidden] {
+  display: none;
+}
+
+.edit-dialog {
+  max-height: min(760px, calc(100vh - 36px));
+  overflow: auto;
+}
+
+.edit-head,
+.edit-actions {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.edit-actions {
+  align-items: center;
+  justify-content: flex-end;
+}
+
+@media (max-width: 720px) {
+  .admin-header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .admin-workspace .toolbar {
+    display: grid;
+  }
+}
