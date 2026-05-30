@@ -1,0 +1,37 @@
+{
+  "updated_at": "2026-05-29T07:00:22",
+  "files": [
+    {
+      "catalog_id": "1",
+      "title": "Staple Model Catalog",
+      "pdf_url": "https://drive.google.com/file/d/1m22AYrRWdailkYRV_ZC_tfQlJacIGdLU/preview",
+      "file_id": "1m22AYrRWdailkYRV_ZC_tfQlJacIGdLU",
+      "path": "C:\\Users\\User\\Documents\\New project 2\\outputs\\catalog_processing\\downloaded_pdfs\\latest\\01_Staple_Model_Catalog.pdf",
+      "sha256": "aa6460fbfafa244afbd895eee8226bb88b545e5aafc07dd3fa8ab65546ac1c2a"
+    },
+    {
+      "catalog_id": "2",
+      "title": "Milana Man Premium Collection",
+      "pdf_url": "https://drive.google.com/file/d/1iNQn7Lr2Tz0cijjyecHtbMC-VH8drhuf/preview",
+      "file_id": "1iNQn7Lr2Tz0cijjyecHtbMC-VH8drhuf",
+      "path": "C:\\Users\\User\\Documents\\New project 2\\outputs\\catalog_processing\\downloaded_pdfs\\latest\\02_Milana_Man_Premium_Collection.pdf",
+      "sha256": "057cfcf96619057a56a389b8b74561215c8a36c19e36e11775eeb090f56405b1"
+    },
+    {
+      "catalog_id": "3",
+      "title": "Kindergarten Set",
+      "pdf_url": "https://drive.google.com/file/d/1tAKAPe2o3nusdtc0QQ_WotdYJDtGPYi5/preview",
+      "file_id": "1tAKAPe2o3nusdtc0QQ_WotdYJDtGPYi5",
+      "path": "C:\\Users\\User\\Documents\\New project 2\\outputs\\catalog_processing\\downloaded_pdfs\\latest\\03_Kindergarten_Set.pdf",
+      "sha256": "9c2b022048091e45d729f4495d4a33200c1c450af55ad541d105b545ba76c388"
+    },
+    {
+      "catalog_id": "4",
+      "title": "Milana Products in Stock",
+      "pdf_url": "https://drive.google.com/file/d/1Lg1RgO1uc3G3PkhENrwO6sP-i2X8h6Vz/preview",
+      "file_id": "1Lg1RgO1uc3G3PkhENrwO6sP-i2X8h6Vz",
+      "path": "C:\\Users\\User\\Documents\\New project 2\\outputs\\catalog_processing\\downloaded_pdfs\\latest\\04_Milana_Products_in_Stock.pdf",
+      "sha256": "c32bf09c3ad0cf10f56d0153d2d6b9bcd843525337d46a4fda0cc4a4c97d1030"
+    }
+  ]
+}
