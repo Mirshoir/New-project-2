@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 470 92" role="img" aria-labelledby="title">
+  <title id="title">Milana Premium</title>
+  <rect width="470" height="92" fill="none"/>
+  <g fill="none" stroke-linecap="square" stroke-linejoin="miter" stroke-width="7">
+    <path d="M14 46 L58 10 L101 46" stroke="#181411"/>
+    <path d="M101 46 L144 10 L188 46" stroke="#cf3a32"/>
+    <path d="M58 10 L101 46 L144 10" stroke="#181411" opacity=".9"/>
+  </g>
+  <text x="327" y="39" text-anchor="middle" fill="#181411"
+        font-family="Montserrat, Arial, sans-serif" font-size="28" font-weight="500"
+        letter-spacing="12">MILANA</text>
+  <text x="327" y="69" text-anchor="middle" fill="#5c554d"
+        font-family="Montserrat, Arial, sans-serif" font-size="12" font-weight="700"
+        letter-spacing="10">PREMIUM</text>
+</svg>
