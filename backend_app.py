@@ -4,6 +4,10 @@ import json
 import logging
 import mimetypes
 import os
+import re
+import base64
+from io import BytesIO
+import time
 import tempfile
 import urllib.error
 import urllib.parse
@@ -166,6 +170,12 @@ class CatalogMatcherBackend:
         )
         self.supabase_table = os.getenv("SUPABASE_PRODUCTS_TABLE", "milana_products")
         self.max_media_mb = int(os.getenv("BACKEND_MAX_MEDIA_MB", "25"))
+        self.catalog_auto_refresh_seconds = max(0, int(os.getenv("CATALOG_AUTO_REFRESH_SECONDS", "300")))
+        self._last_refresh_at: float = 0.0
+        self._last_local_catalog_mtime: float = 0.0
+        self.enable_openai_vision = env_flag("ENABLE_OPENAI_VISION", default=False)
+        self.openai_vision_model = os.getenv("OPENAI_VISION_MODEL", os.getenv("OPENAI_MODEL", "gpt-4.1-mini"))
+        self.openai_vision_timeout = max(5, int(os.getenv("OPENAI_VISION_TIMEOUT_SECONDS", "20")))
 
         self.enable_clip = env_flag("ENABLE_CLIP", default=True)
         self.clip_model_name = os.getenv("CLIP_MODEL", "clip-ViT-B-32")
@@ -267,7 +277,41 @@ class CatalogMatcherBackend:
 
         self.products = products
         self.code_index = code_index
+        self._last_refresh_at = time.time()
+        if self.catalog_json_path.exists():
+            try:
+                self._last_local_catalog_mtime = self.catalog_json_path.stat().st_mtime
+            except Exception:
+                self._last_local_catalog_mtime = 0.0
         return len(self.products)
+
+    def maybe_refresh_catalog(self) -> None:
+        if self.catalog_auto_refresh_seconds <= 0:
+            return
+
+        now = time.time()
+        if self._last_refresh_at and (now - self._last_refresh_at) < self.catalog_auto_refresh_seconds:
+            return
+
+        should_refresh = True
+        if self.catalog_json_path.exists():
+            try:
+                current_mtime = self.catalog_json_path.stat().st_mtime
+                if current_mtime == self._last_local_catalog_mtime:
+                    should_refresh = bool(self.supabase_url and self.supabase_key)
+            except Exception:
+                should_refresh = True
+
+        if not should_refresh:
+            self._last_refresh_at = now
+            return
+
+        try:
+            count = self.refresh_catalog()
+            LOGGER.info("Auto-refresh catalog complete: %s products", count)
+        except Exception as exc:
+            LOGGER.warning("Auto-refresh catalog failed: %s", exc)
+            self._last_refresh_at = now
 
     def _product_id(self, row: dict[str, Any]) -> str:
         return "::".join(
@@ -682,6 +726,150 @@ def guess_mime_from_filename(filename: str | None) -> str | None:
     return guessed
 
 
+def _extract_first_json_object(text: str) -> dict[str, Any]:
+    raw = (text or "").strip()
+    if not raw:
+        return {}
+    try:
+        parsed = json.loads(raw)
+        if isinstance(parsed, dict):
+            return parsed
+    except Exception:
+        pass
+
+    match = re.search(r"\{[\s\S]*\}", raw)
+    if not match:
+        return {}
+    try:
+        parsed = json.loads(match.group(0))
+        return parsed if isinstance(parsed, dict) else {}
+    except Exception:
+        return {}
+
+
+def extract_openai_vision_hints(
+    images: list[Image.Image],
+    user_message: str,
+    language: str,
+) -> dict[str, Any]:
+    if not BACKEND.enable_openai_vision:
+        return {}
+
+    api_key = os.getenv("OPENAI_API_KEY", "").strip()
+    if not api_key or not images:
+        return {}
+
+    try:
+        first = images[0].convert("RGB")
+        first.thumbnail((1280, 1280))
+        buff = BytesIO()
+        first.save(buff, format="JPEG", quality=90)
+        img_b64 = base64.b64encode(buff.getvalue()).decode("ascii")
+    except Exception as exc:
+        LOGGER.warning("OpenAI vision preprocessing failed: %s", exc)
+        return {}
+
+    vision_system = (
+        "You identify product signals from fashion catalog photos. "
+        "Return ONLY a JSON object with keys: "
+        "product_codes (array), model_codes (array), keywords (array), detected_text (string), confidence (0..1). "
+        "Do not include markdown."
+    )
+    vision_user = {
+        "language": language,
+        "customer_message": user_message,
+        "task": (
+            "Read visible text/code on clothing image and infer likely product cues. "
+            "Keep keywords short and practical."
+        ),
+    }
+
+    payload = {
+        "model": BACKEND.openai_vision_model,
+        "input": [
+            {
+                "role": "system",
+                "content": [
+                    {"type": "input_text", "text": vision_system},
+                ],
+            },
+            {
+                "role": "user",
+                "content": [
+                    {"type": "input_text", "text": json.dumps(vision_user, ensure_ascii=False)},
+                    {"type": "input_image", "image_url": f"data:image/jpeg;base64,{img_b64}", "detail": "high"},
+                ],
+            },
+        ],
+        "temperature": 0.0,
+    }
+
+    request = urllib.request.Request(
+        "https://api.openai.com/v1/responses",
+        data=json.dumps(payload).encode("utf-8"),
+        method="POST",
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+    )
+
+    try:
+        with urllib.request.urlopen(request, timeout=BACKEND.openai_vision_timeout) as response:
+            result = json.loads(response.read().decode("utf-8"))
+    except Exception as exc:
+        LOGGER.warning("OpenAI vision request failed: %s", exc)
+        return {}
+
+    output_text = (result.get("output_text") or "").strip()
+    if not output_text:
+        for output_item in result.get("output", []):
+            for content_item in output_item.get("content", []):
+                text_value = content_item.get("text")
+                if text_value:
+                    output_text = str(text_value).strip()
+                    break
+            if output_text:
+                break
+
+    parsed = _extract_first_json_object(output_text)
+    raw_codes: list[str] = []
+    for key in ("product_codes", "model_codes"):
+        values = parsed.get(key)
+        if isinstance(values, list):
+            raw_codes.extend(str(item) for item in values if item)
+
+    if isinstance(parsed.get("detected_text"), str):
+        raw_codes.extend(BACKEND.extract_codes(parsed["detected_text"]))
+
+    normalized_codes: list[str] = []
+    for code in raw_codes:
+        normalized = normalize_code(code)
+        if normalized and normalized not in normalized_codes:
+            normalized_codes.append(normalized)
+
+    raw_keywords = parsed.get("keywords")
+    keywords: list[str] = []
+    if isinstance(raw_keywords, list):
+        for item in raw_keywords:
+            text = str(item).strip()
+            if text and text not in keywords:
+                keywords.append(text)
+
+    detected_text = str(parsed.get("detected_text") or "").strip()
+    search_text = " ".join([detected_text, *keywords]).strip()
+    confidence = float(parsed.get("confidence") or 0.0)
+
+    return {
+        "codes": normalized_codes,
+        "keywords": keywords,
+        "detected_text": detected_text,
+        "search_text": search_text,
+        "confidence": confidence,
+        "model": BACKEND.openai_vision_model,
+    }
+
+
 PROJECT_ROOT = Path(__file__).resolve().parent
 BACKEND = CatalogMatcherBackend(PROJECT_ROOT)
 BACKEND.refresh_catalog()
@@ -702,11 +890,14 @@ def health() -> dict[str, Any]:
     return {
         "status": "ok",
         "catalog_products": len(BACKEND.products),
+        "catalog_auto_refresh_seconds": BACKEND.catalog_auto_refresh_seconds,
         "ocr_available": OCR.available,
         "clip_enabled": BACKEND.enable_clip,
         "clip_available": BACKEND.clip_engine.available,
         "clip_loaded": BACKEND.clip_engine.loaded,
         "clip_model": BACKEND.clip_model_name,
+        "openai_vision_enabled": BACKEND.enable_openai_vision,
+        "openai_vision_model": BACKEND.openai_vision_model,
         "fusion_weights": {
             "visual": BACKEND.weight_visual,
             "code": BACKEND.weight_code,
@@ -793,6 +984,8 @@ def _process_media(
     if top_k < 1 or top_k > 10:
         raise HTTPException(status_code=400, detail="top_k must be between 1 and 10")
 
+    BACKEND.maybe_refresh_catalog()
+
     try:
         images = extract_images_from_media(media_path, mime_type)
     except Exception as exc:
@@ -806,17 +999,27 @@ def _process_media(
 
     merged_ocr_text = "\n".join(ocr_text_parts)
     extracted_codes = BACKEND.extract_codes(merged_ocr_text)
+    vision_hints = extract_openai_vision_hints(images, user_message, language)
+    vision_codes = vision_hints.get("codes", [])
+    for code in vision_codes:
+        if code not in extracted_codes:
+            extracted_codes.append(code)
 
     if user_message:
         for code in BACKEND.extract_codes(user_message):
             if code not in extracted_codes:
                 extracted_codes.append(code)
 
+    search_user_message = user_message
+    vision_search_text = str(vision_hints.get("search_text") or "").strip()
+    if vision_search_text:
+        search_user_message = f"{search_user_message}\n{vision_search_text}".strip()
+
     matches = BACKEND.find_matches(
         images=images,
         extracted_codes=extracted_codes,
         ocr_text=merged_ocr_text,
-        user_message=user_message,
+        user_message=search_user_message,
         top_k=top_k,
     )
     response_matches = [format_match_for_response(candidate) for candidate in matches]
@@ -834,5 +1037,9 @@ def _process_media(
             "catalog_products": len(BACKEND.products),
             "clip_available": BACKEND.clip_engine.available,
             "min_fusion_score": BACKEND.min_fusion_score,
+            "vision_used": bool(vision_hints),
+            "vision_codes": vision_hints.get("codes", []),
+            "vision_keywords": vision_hints.get("keywords", []),
+            "vision_confidence": vision_hints.get("confidence", 0.0),
         },
     }
