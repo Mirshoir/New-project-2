@@ -21,6 +21,10 @@ services:
         value: "80"
       - key: BACKEND_MAX_MEDIA_MB
         value: "25"
+      - key: CATALOG_AUTO_REFRESH_SECONDS
+        value: "300"
+      - key: ENABLE_OPENAI_VISION
+        value: "1"
       - key: OCR_LANG
         value: "eng"
       - key: OPENAI_MODEL
